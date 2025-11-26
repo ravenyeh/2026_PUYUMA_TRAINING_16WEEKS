@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訓練數據分析儀表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Header -->
+        <header class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">訓練數據分析儀表板</h1>
+            <p class="text-gray-500 mt-2">16週鐵人三項訓練計劃數據可視化</p>
+        </header>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <p class="text-sm text-gray-500">最高單週總時間</p>
+                <p class="text-2xl font-bold text-gray-800">18.8 <span class="text-sm font-normal">小時 (第11週)</span></p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-cyan-500">
+                <p class="text-sm text-gray-500">最高單週游泳量</p>
+                <p class="text-2xl font-bold text-gray-800">9.8 <span class="text-sm font-normal">km (第8週)</span></p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-orange-500">
+                <p class="text-sm text-gray-500">最高單週自行車量</p>
+                <p class="text-2xl font-bold text-gray-800">260 <span class="text-sm font-normal">km (第11週)</span></p>
+            </div>
+            <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+                <p class="text-sm text-gray-500">最高單週跑步量</p>
+                <p class="text-2xl font-bold text-gray-800">71 <span class="text-sm font-normal">km (第12週)</span></p>
+            </div>
+        </div>
+
+        <!-- 4-Week Cycle Summary (NEW) -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">週期訓練總結 (每4週)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Cycle Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 rounded-tl-lg">週期</th>
+                                <th class="px-4 py-3 text-blue-600">總游泳(km)</th>
+                                <th class="px-4 py-3 text-orange-600">總自行車(km)</th>
+                                <th class="px-4 py-3 text-green-600">總跑步(km)</th>
+                                <th class="px-4 py-3 rounded-tr-lg text-gray-800">總時數(小時)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cycleTableBody">
+                            <!-- JS will insert data here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Cycle Chart -->
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="cycleChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Total Distance Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">每週總訓練距離 (km)</h2>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="totalDistanceChart"></canvas>
+                </div>
+                <p class="text-xs text-gray-400 mt-2 text-center">*左軸：游泳/跑步 | 右軸：自行車</p>
+            </div>
+
+            <!-- Max Distance Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">每週單次最大距離 (km)</h2>
+                <div class="chart-container">
+                    <canvas id="maxDistanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Total Time Chart -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">每週預計總時間 (小時)</h2>
+                <div class="chart-container">
+                    <canvas id="totalTimeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mt-6">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-800">詳細每週數據表</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">週別</th>
+                            <th class="px-6 py-3 text-blue-600">總游泳</th>
+                            <th class="px-6 py-3 text-orange-600">總自行車</th>
+                            <th class="px-6 py-3 text-green-600">總跑步</th>
+                            <th class="px-6 py-3 text-gray-600">總時間(小時)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <!-- Data will be inserted here by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data extracted from the user's image
+        const rawData = [
+            { week: 1,  swim: 7.5, bike: 150, run: 39, maxSwim: 3,   maxBike: 80,  maxRun: 15, time: 740 },
+            { week: 2,  swim: 7.5, bike: 185, run: 34, maxSwim: 3,   maxBike: 110, maxRun: 16, time: 745 },
+            { week: 3,  swim: 7.5, bike: 165, run: 38, maxSwim: 3,   maxBike: 90,  maxRun: 20, time: 800 },
+            { week: 4,  swim: 8,   bike: 180, run: 44, maxSwim: 3,   maxBike: 100, maxRun: 22, time: 875 },
+            { week: 5,  swim: 8.5, bike: 200, run: 46, maxSwim: 3,   maxBike: 110, maxRun: 24, time: 950 },
+            { week: 6,  swim: 9.5, bike: 230, run: 43, maxSwim: 3.3, maxBike: 145, maxRun: 26, time: 975 },
+            { week: 7,  swim: 9.7, bike: 240, run: 46, maxSwim: 3.4, maxBike: 150, maxRun: 28, time: 1010 },
+            { week: 8,  swim: 9.8, bike: 250, run: 48, maxSwim: 3.5, maxBike: 155, maxRun: 30, time: 1035 },
+            { week: 9,  swim: 7.1, bike: 245, run: 64, maxSwim: 3.6, maxBike: 150, maxRun: 30, time: 1070 },
+            { week: 10, swim: 7.2, bike: 255, run: 67, maxSwim: 3.7, maxBike: 155, maxRun: 30, time: 1105 },
+            { week: 11, swim: 7.2, bike: 260, run: 65, maxSwim: 3.7, maxBike: 160, maxRun: 32, time: 1130 },
+            { week: 12, swim: 6.7, bike: 255, run: 71, maxSwim: 3.5, maxBike: 165, maxRun: 34, time: 1105 },
+            { week: 13, swim: 6,   bike: 220, run: 69, maxSwim: 3,   maxBike: 140, maxRun: 28, time: 1015 },
+            { week: 14, swim: 9.1, bike: 250, run: 44, maxSwim: 3.8, maxBike: 180, maxRun: 20, time: 910 },
+            { week: 15, swim: 4.5, bike: 150, run: 32, maxSwim: 2.5, maxBike: 90,  maxRun: 10, time: 615 },
+            { week: 16, swim: 1.5, bike: 40,  run: 8,  maxSwim: 1.5, maxBike: 40,  maxRun: 8,  time: 183 }
+        ];
+
+        const weeks = rawData.map(d => `第 ${d.week} 週`);
+        
+        // Colors
+        const swimColor = 'rgb(6, 182, 212)'; // Cyan-500
+        const bikeColor = 'rgb(249, 115, 22)'; // Orange-500
+        const runColor = 'rgb(34, 197, 94)';  // Green-500
+        const timeColor = 'rgb(99, 102, 241)'; // Indigo-500
+
+        // ----------------------------------------------------
+        // Logic for 4-Week Cycle Summary
+        // ----------------------------------------------------
+        const cycleData = [];
+        for (let i = 0; i < rawData.length; i += 4) {
+            const chunk = rawData.slice(i, i + 4);
+            const sumSwim = chunk.reduce((sum, item) => sum + item.swim, 0);
+            const sumBike = chunk.reduce((sum, item) => sum + item.bike, 0);
+            const sumRun = chunk.reduce((sum, item) => sum + item.run, 0);
+            const sumTimeMin = chunk.reduce((sum, item) => sum + item.time, 0);
+            
+            cycleData.push({
+                period: `第 ${i+1} - ${Math.min(i+4, rawData.length)} 週`,
+                swim: parseFloat(sumSwim.toFixed(1)),
+                bike: sumBike,
+                run: sumRun,
+                timeHours: parseFloat((sumTimeMin / 60).toFixed(1))
+            });
+        }
+
+        // Render Cycle Table
+        const cycleTableBody = document.getElementById('cycleTableBody');
+        cycleData.forEach(c => {
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b hover:bg-gray-50';
+            row.innerHTML = `
+                <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">${c.period}</td>
+                <td class="px-4 py-3">${c.swim}</td>
+                <td class="px-4 py-3">${c.bike}</td>
+                <td class="px-4 py-3">${c.run}</td>
+                <td class="px-4 py-3 font-bold text-gray-700">${c.timeHours}</td>
+            `;
+            cycleTableBody.appendChild(row);
+        });
+
+        // Render Cycle Chart (Total Hours)
+        const ctxCycle = document.getElementById('cycleChart').getContext('2d');
+        new Chart(ctxCycle, {
+            type: 'bar',
+            data: {
+                labels: cycleData.map(c => c.period),
+                datasets: [{
+                    label: '週期總時數 (小時)',
+                    data: cycleData.map(c => c.timeHours),
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.7)', // Blue
+                        'rgba(16, 185, 129, 0.7)', // Green
+                        'rgba(245, 158, 11, 0.7)', // Amber
+                        'rgba(239, 68, 68, 0.7)'   // Red
+                    ],
+                    borderColor: [
+                        'rgb(59, 130, 246)',
+                        'rgb(16, 185, 129)',
+                        'rgb(245, 158, 11)',
+                        'rgb(239, 68, 68)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: '每週期總訓練時數' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: '小時' }
+                    }
+                }
+            }
+        });
+
+        // ----------------------------------------------------
+        // Existing Charts (Total Distance)
+        // ----------------------------------------------------
+        const ctxTotal = document.getElementById('totalDistanceChart').getContext('2d');
+        new Chart(ctxTotal, {
+            type: 'line',
+            data: {
+                labels: weeks,
+                datasets: [
+                    {
+                        label: '游泳 (Swim)',
+                        data: rawData.map(d => d.swim),
+                        borderColor: swimColor,
+                        backgroundColor: swimColor,
+                        yAxisID: 'y',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    },
+                    {
+                        label: '跑步 (Run)',
+                        data: rawData.map(d => d.run),
+                        borderColor: runColor,
+                        backgroundColor: runColor,
+                        yAxisID: 'y',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    },
+                    {
+                        label: '自行車 (Bike)',
+                        data: rawData.map(d => d.bike),
+                        borderColor: bikeColor,
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                        fill: true,
+                        yAxisID: 'y1',
+                        tension: 0.3,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: '游泳 / 跑步 (km)' },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: '自行車 (km)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // Chart 2: Max Distances
+        const ctxMax = document.getElementById('maxDistanceChart').getContext('2d');
+        new Chart(ctxMax, {
+            type: 'bar',
+            data: {
+                labels: weeks,
+                datasets: [
+                    {
+                        label: '最大游泳',
+                        data: rawData.map(d => d.maxSwim),
+                        backgroundColor: swimColor,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: '最大跑步',
+                        data: rawData.map(d => d.maxRun),
+                        backgroundColor: runColor,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: '最大自行車',
+                        data: rawData.map(d => d.maxBike),
+                        type: 'line',
+                        borderColor: bikeColor,
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: false, text: 'Swim/Run (km)' },
+                        stacked: false
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'right',
+                        title: { display: false, text: 'Bike (km)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // Chart 3: Total Time (Line) - Hours
+        const ctxTime = document.getElementById('totalTimeChart').getContext('2d');
+        new Chart(ctxTime, {
+            type: 'line',
+            data: {
+                labels: weeks,
+                datasets: [{
+                    label: '預計總時間 (小時)',
+                    data: rawData.map(d => (d.time / 60).toFixed(1)),
+                    borderColor: timeColor,
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: timeColor,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                }
+            }
+        });
+
+        // Populate Main Data Table
+        const tableBody = document.getElementById('dataTableBody');
+        rawData.forEach(d => {
+            const row = document.createElement('tr');
+            row.className = 'bg-white border-b hover:bg-gray-50';
+            const hours = (d.time / 60).toFixed(1);
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 font-medium text-gray-900">第 ${d.week} 週</td>
+                <td class="px-6 py-4">${d.swim}</td>
+                <td class="px-6 py-4">${d.bike}</td>
+                <td class="px-6 py-4">${d.run}</td>
+                <td class="px-6 py-4 font-bold text-gray-700">${hours}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+    </script>
+</body>
+</html>
