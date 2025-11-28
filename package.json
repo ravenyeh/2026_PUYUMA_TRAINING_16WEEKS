@@ -1,0 +1,23 @@
+{
+  "name": "2026-puyuma-training-16weeks",
+  "version": "1.0.0",
+  "description": "2026 普悠瑪鐵人三項 16週訓練計畫 - 訓練數據分析儀表板",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve",
+    "dev": "vercel dev",
+    "build": "echo 'No build needed for static site'"
+  },
+  "keywords": [
+    "triathlon",
+    "puyuma",
+    "ironman",
+    "training",
+    "garmin"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@gooin/garmin-connect": "1.6.6"
+  }
+}
